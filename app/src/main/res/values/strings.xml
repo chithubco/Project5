@@ -40,4 +40,26 @@
     <string name="geofence_too_many_geofences">Your app has registered too many geofences.</string>
     <string name="geofence_too_many_pending_intents">You have provided too many PendingIntents to the addGeofences() call.</string>
     <string name="error_adding_geofence">Error Happened, Can\'t Add Geofence</string>
+
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="login_button_text">Login</string>
+    <string name="logout_button_text">Logout</string>
+    <string name="login_unsuccessful_msg">Login unsuccessful</string>
+    <string name="welcome_message">It\'s currently %1$s.</string>
+    <string name="welcome_message_authed">Hi %1$s! Did you know that %2$s.</string>
+    <string name="location_1">Location 1</string>
+    <string name="description">This is the place that made be become a great developer</string>
+    <string name="lat_long">Lat : 234 , Long 34.90</string>
+    <string name="latlong_unit_format">%f km</string>
+    <string name="back_to_list_of_reminders">Back to list of reminders</string>
+    <string name="long_press_to_add_reminder">Long press to add reminder</string>
+    <string name="click_to_view_in_map">Click to View In Map</string>
+    <string name="no_reminder_data_found">No Reminder Data Found</string>
+    <string name="reminder_description">Reminder Description</string>
+    <string name="standard">Standard</string>
+    <string name="silver">Silver</string>
+    <string name="retro">Retro</string>
+    <string name="dark">Dark</string>
+    <string name="night">Night</string>
+    <string name="aubergine">Aubergine</string>
 </resources>
