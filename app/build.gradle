@@ -4,6 +4,7 @@ apply plugin: 'kotlin-kapt'
 apply plugin: "androidx.navigation.safeargs.kotlin"
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'com.google.gms.google-services'
+//apply plugin: 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -98,6 +99,9 @@ dependencies {
     implementation 'com.google.maps.android:android-maps-utils:2.2.0'
     // Easy Permissions
     implementation 'com.vmadalin:easypermissions-ktx:1.0.0'
+
+    //Maps
+    implementation 'com.google.android.gms:play-services-maps:17.0.1'
 
     // Dependencies for local unit tests
     testImplementation "junit:junit:$junitVersion"

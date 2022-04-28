@@ -4,15 +4,21 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Activity.RESULT_CANCELED
+import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.content.res.Resources
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
+import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
@@ -29,18 +35,22 @@ import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.Constants
+import com.udacity.project4.utils.Constants.PERMISSION_LOCATION_REQUEST_CODE
 import com.udacity.project4.utils.Permissions.hasBackgroundLocationPermission
 import com.udacity.project4.utils.Permissions.hasLocationPermission
 import com.udacity.project4.utils.Permissions.requestBackgroundLocationPermission
 import com.udacity.project4.utils.Permissions.requestLocationPermission
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import com.vmadalin.easypermissions.EasyPermissions
+import com.vmadalin.easypermissions.annotations.AfterPermissionGranted
 import com.vmadalin.easypermissions.dialogs.SettingsDialog
+import org.koin.android.ext.android.bind
 import org.koin.android.ext.android.inject
 import java.security.Permissions
 
 class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
-    GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnPoiClickListener, EasyPermissions.PermissionCallbacks {
+    GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnPoiClickListener,
+    EasyPermissions.PermissionCallbacks, EasyPermissions.RationaleCallbacks {
 
     //Use Koin to get the view model of the SaveReminder
     override val _viewModel: SaveReminderViewModel by inject()
@@ -54,13 +64,8 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
     @SuppressLint("MissingPermission")
     private val callback = OnMapReadyCallback { googleMap ->
         mMap = googleMap
-
-        if (!hasLocationPermission(requireContext())) {
-            requestLocationPermission(this)
-        } else {
-            mMap.isMyLocationEnabled = true
-        }
-
+        setUpObservers()
+        enableMyLocation()
         // Create a Geofence instance
         geofencingClient = LocationServices.getGeofencingClient(requireContext())
 
@@ -85,6 +90,36 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
 
     }
 
+    @SuppressLint("MissingPermission")
+    private fun enableMyLocation() {
+        if (!hasLocationPermission(requireContext())) {
+            _viewModel.hasPermission.postValue(false)
+            requestLocationPermission(this)
+        } else {
+            _viewModel.hasPermission.postValue(true)
+            mMap.isMyLocationEnabled = true
+        }
+    }
+
+    private fun setUpObservers(){
+        _viewModel.hasPermission.observe(viewLifecycleOwner, Observer { hasPermission ->
+            Log.i("Permission",hasPermission.toString())
+            if (hasPermission){
+                binding.btnRequestPermission.visibility = View.GONE
+            }else{
+                binding.btnRequestPermission.visibility = View.VISIBLE
+            }
+
+        })
+    }
+
+    private fun navigateBackIfLocationIsNotGranted() {
+        if (!hasLocationPermission(requireContext())) {
+            findNavController().popBackStack()
+        }
+    }
+
+    @SuppressLint("MissingPermission")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
@@ -107,6 +142,14 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
 
 //        TODO: call this function after the user confirms on the selected location
         onLocationSelected()
+        binding.btnRequestPermission.setOnClickListener {
+            if (!hasLocationPermission(requireContext())) {
+                requestLocationPermission(this)
+            }else{
+                _viewModel.hasPermission.postValue(true)
+                mMap.isMyLocationEnabled = true
+            }
+        }
 
         return binding.root
     }
@@ -146,9 +189,11 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
 
     override fun onMyLocationButtonClick(): Boolean {
         if (!hasLocationPermission(requireContext())) {
+            Log.i("Permission", "onMyLocationButtonClick No Permission ")
             requestLocationPermission(this)
             return false
         }
+        _viewModel.hasPermission.postValue(true)
         return false
     }
 
@@ -166,7 +211,9 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
         mMap.setOnMapLongClickListener {
             intendedLatLong = it
             if (hasBackgroundLocationPermission(requireContext())) {
+                Log.i("Permission", "onMapClicked has Permission ")
             } else {
+                Log.i("Permission", "onMapClicked No Permission ")
                 requestBackgroundLocationPermission(this)
             }
 
@@ -200,23 +247,54 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == Constants.REQUEST_TURN_DEVICE_LOCATION_ON) {
+//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+//        Log.i("Permission",requestCode.toString())
+//        if (requestCode == Constants.REQUEST_TURN_DEVICE_LOCATION_ON) {
+//
+//        }
+//
+//    }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (resultCode == RESULT_CANCELED){
+            Log.i("Permission", "onActivityResult Cancel Button")
+        }
+        if (requestCode == PERMISSION_LOCATION_REQUEST_CODE && resultCode == RESULT_OK) {
+            // Do something after user returned from app settings screen, like showing a Toast.
+            Toast.makeText(requireContext(), "From App Settings", Toast.LENGTH_SHORT)
+                .show();
+            _viewModel.hasPermission.postValue(true)
+        }
+        if (requestCode == PERMISSION_LOCATION_REQUEST_CODE && resultCode == RESULT_CANCELED) {
+            // Do something after user returned from app settings screen, like showing a Toast.
+            requestLocationPermission(this)
         }
 
     }
 
     override fun onPermissionsDenied(requestCode: Int, perms: List<String>) {
         if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
+            Log.i("Permission", "onPermissionDenied If")
             SettingsDialog.Builder(requireActivity()).build().show()
-        } else {
-            requestLocationPermission(this)
+        }
+//        else if (EasyPermissions.somePermissionDenied(this,Manifest.permission.ACCESS_FINE_LOCATION)){
+//            Log.i("Permission", "onPermissionDenied Specific")
+//            SettingsDialog.Builder(requireActivity()).build().show()
+//        }
+        else {
+            if (requestCode == PERMISSION_LOCATION_REQUEST_CODE) {
+                Log.i("Permission", "onPermissionDenied Else")
+//                findNavController().popBackStack()
+            }
         }
     }
 
     @SuppressLint("MissingPermission")
     override fun onPermissionsGranted(requestCode: Int, perms: List<String>) {
+        Log.i("Permission", "onPermissionGranted ")
+        _viewModel.hasPermission.postValue(true)
         mMap.isMyLocationEnabled = true
     }
 
@@ -225,9 +303,13 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == Constants.PERMISSION_BACKGROND_LOCATION_REQUEST_CODE) {
-//            createAddReminderDialog(intendedLatLong)
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PERMISSION_LOCATION_REQUEST_CODE) {
+            if (hasLocationPermission(requireContext())){
+                _viewModel.hasPermission.postValue(true)
+            }else{
+                requestLocationPermission(this)
+            }
         }
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
     }
@@ -243,6 +325,15 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
         } catch (e: Exception) {
             Log.d("Map Style", e.toString())
         }
+    }
+
+    override fun onRationaleAccepted(requestCode: Int) {
+        Log.i("Permission", "onRationaleAccepted ")
+        _viewModel.hasPermission.postValue(true)
+    }
+
+    override fun onRationaleDenied(requestCode: Int) {
+        Log.i("Permission", "onRationaleDenied ")
     }
 
 

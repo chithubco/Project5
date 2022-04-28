@@ -62,4 +62,5 @@
     <string name="dark">Dark</string>
     <string name="night">Night</string>
     <string name="aubergine">Aubergine</string>
+    <string name="request_permission">Request Permission</string>
 </resources>
