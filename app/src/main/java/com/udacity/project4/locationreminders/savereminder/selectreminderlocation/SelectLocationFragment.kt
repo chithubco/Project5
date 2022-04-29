@@ -26,6 +26,7 @@ import com.google.android.gms.maps.model.*
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
+import com.udacity.project4.locationreminders.data.dto.GeocodeDTO
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.Constants.PERMISSION_BACKGROND_LOCATION_REQUEST_CODE
@@ -34,6 +35,7 @@ import com.udacity.project4.utils.Permissions.hasLocationPermission
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
 import java.io.IOException
+import java.lang.StringBuilder
 
 class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
     GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnPoiClickListener {
@@ -284,10 +286,29 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
     }
 
     override fun onPoiClick(poi: PointOfInterest?) {
-        Log.i("POI", poi?.latLng?.latitude.toString())
-        Log.i("POI", poi?.latLng?.longitude.toString())
-        Log.i("POI", poi?.name.toString())
-        Log.i("POI", poi?.placeId.toString())
+//        Log.i("POI", poi?.latLng?.latitude.toString())
+//        Log.i("POI", poi?.latLng?.longitude.toString())
+//        Log.i("POI", poi?.name.toString())
+//        Log.i("POI", poi?.placeId.toString())
+
+        checkBackgroundPermission()
+
+        var geocode = GeocodeDTO(poi?.name.toString(),poi?.latLng?.latitude.toString(),poi?.latLng?.longitude.toString())
+
+        val stringBuilder = StringBuilder()
+        stringBuilder.append("Location details : ${poi?.name.toString()}")
+        stringBuilder.append(" would be added to you reminder")
+
+        val builder = AlertDialog.Builder(requireContext())
+        builder
+            .setMessage(stringBuilder.toString())
+            .setTitle("Add Location Details")
+            .setPositiveButton("Add Reminder") { dialog, id ->
+                // Go pack to add reminder screen
+                val action = SelectLocationFragmentDirections.actionSelectLocationFragmentToSaveReminderFragment(geocode)
+                findNavController().navigate(action)
+            }.setNegativeButton("Dismiss") { dialog, id ->
+            }.create().show()
     }
 
     private fun onMapClicked() {
@@ -302,7 +323,27 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
     private fun onMapLongClick() {
         mMap.setOnMapLongClickListener {
             checkBackgroundPermission()
-            reverseGeocodeLocation(it.latitude,it.longitude)
+            val address = reverseGeocodeLocation(it.latitude,it.longitude)
+
+            var geocode = GeocodeDTO(address?.get(0)?.getAddressLine(0),it.latitude.toString(),it.longitude.toString())
+
+            val stringBuilder = StringBuilder()
+            stringBuilder.append("Location details : ${address?.get(0)?.getAddressLine(0)}")
+            stringBuilder.append(" ${address?.get(0)?.adminArea}")
+            stringBuilder.append(" would be added to you reminder")
+
+            val builder = AlertDialog.Builder(requireContext())
+            builder
+                .setMessage(stringBuilder.toString())
+                .setTitle("Add Location Details")
+                .setPositiveButton("Add Reminder") { dialog, id ->
+                    // Go pack to add reminder screen
+                    val action = SelectLocationFragmentDirections.actionSelectLocationFragmentToSaveReminderFragment(geocode)
+                    findNavController().navigate(action)
+
+                }.setNegativeButton("Dismiss") { dialog, id ->
+                    //
+                }.create().show()
         }
     }
 
@@ -348,7 +389,7 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
     }
 
     @SuppressLint("MissingPermission")
-    private fun reverseGeocodeLocation(latitude: Double,longitude: Double) {
+    private fun reverseGeocodeLocation(latitude: Double,longitude: Double) : List<Address>? {
         var geocodeMatches: List<Address>? = null
         val address1: String?
         val address2: String?
@@ -371,8 +412,7 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
             zipCode = it?.get(0)?.postalCode
             Country = it?.get(0)?.countryName
         }
-
-        Log.i("Geocode",geocodeMatches.toString())
+        return geocodeMatches
 
     }
 
