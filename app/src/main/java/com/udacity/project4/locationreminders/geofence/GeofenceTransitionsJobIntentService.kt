@@ -18,6 +18,7 @@ import com.udacity.project4.locationreminders.data.dto.Result
 import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.utils.Constants
+import com.udacity.project4.utils.Constants.GEOFENCE_EXPIRATION_IN_MILLISECONDS
 import com.udacity.project4.utils.sendNotification
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
@@ -25,7 +26,7 @@ import kotlin.coroutines.CoroutineContext
 
 class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
 
-    private val TAG = "JobIntentService"
+    private val TAG = "GeofenceReceiver"
     private var coroutineJob: Job = Job()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + coroutineJob
@@ -52,64 +53,37 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
         super.onCreate()
         // Create a Geofence instance
         geofencingClient = LocationServices.getGeofencingClient(this@GeofenceTransitionsJobIntentService)
+        Log.i("GeofenceReceiver","JobIntent onCreate")
     }
 
     override fun onHandleWork(intent: Intent) {
         //TODO: handle the geofencing transition events and
         // send a notification to the user when he enters the geofence area
         //TODO call @sendNotification
-        val input = intent.getStringExtra("requestId").toString()
+        val requestId = intent.getStringExtra("requestId").toString()
         val latitude = intent.getStringExtra("latitude").toString()
         val longitude = intent.getStringExtra("longitude").toString()
-//        for (i in 2..10){
-//            Log.i(TAG,"Run ${input} - ${i}")
-//            Thread.sleep(1000)
-//        }
-        if (!latitude.isNullOrEmpty() && !longitude.isNullOrEmpty()){
-                createGeofence(latitude,longitude)
-        }
 
+
+        if (latitude != null && longitude != null && requestId != null){
+            Log.i("GeofenceReceiver","Lat : ${latitude}")
+            Log.i("GeofenceReceiver","Long : ${longitude}")
+            Log.i("GeofenceReceiver","RequestId : ${requestId}")
+            createGeofence(latitude,longitude,requestId)
+        }
         if (isStopped) return
     }
 
-    //TODO: get the request id of the current geofence
-    private fun sendNotification(triggeringGeofences: List<Geofence>) {
-        val requestId = ""
-
-        //Get the local repository instance
-        val remindersLocalRepository: RemindersLocalRepository by inject()
-//        Interaction to the repository has to be through a coroutine scope
-        CoroutineScope(coroutineContext).launch(SupervisorJob()) {
-            //get the reminder with the request id
-            val result = remindersLocalRepository.getReminder(requestId)
-            if (result is Result.Success<ReminderDTO>) {
-                val reminderDTO = result.data
-                //send a notification to the user with the reminder details
-                sendNotification(
-                    this@GeofenceTransitionsJobIntentService, ReminderDataItem(
-                        reminderDTO.title,
-                        reminderDTO.description,
-                        reminderDTO.location,
-                        reminderDTO.latitude,
-                        reminderDTO.longitude,
-                        reminderDTO.id
-                    )
-                )
-            }
-        }
-    }
-
-
     @SuppressLint("MissingPermission")
-    private fun createGeofence(latitude: String,longitude: String) {
+    private fun createGeofence(latitude: String,longitude: String, requestId: String) {
         val position = LatLng(latitude.toDouble(), longitude.toDouble())
         val geofence = Geofence.Builder()
-            .setRequestId(Constants.GEOFENCE_REQUEST_ID)
+            .setRequestId(requestId)
             .setCircularRegion(position.latitude, position.longitude,
                 Constants.GEOFENCE_RADIUS_IN_METERS
             )
             .setLoiteringDelay(Constants.GEOFENCE_LOITERING_DELAY_IN_MILLISECONDS)
-            .setExpirationDuration(Constants.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+            .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT or Geofence.GEOFENCE_TRANSITION_DWELL)
             .build()
 
@@ -148,4 +122,8 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
         )
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.i("GeofenceReceiver","JobIntent Destroyed")
+    }
 }

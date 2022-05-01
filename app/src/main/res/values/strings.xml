@@ -52,7 +52,7 @@
     <string name="lat_long">Lat : 234 , Long 34.90</string>
     <string name="latlong_unit_format">%f km</string>
     <string name="back_to_list_of_reminders">Back to list of reminders</string>
-    <string name="long_press_to_add_reminder">Long press to add reminder</string>
+    <string name="long_press_to_add_reminder">Plese select a POI or Long Press</string>
     <string name="click_to_view_in_map">Click to View In Map</string>
     <string name="no_reminder_data_found">No Reminder Data Found</string>
     <string name="reminder_description">Reminder Description</string>
