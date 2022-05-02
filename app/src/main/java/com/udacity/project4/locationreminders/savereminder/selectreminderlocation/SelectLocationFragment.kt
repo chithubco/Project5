@@ -45,18 +45,12 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
     private lateinit var binding: FragmentSelectLocationBinding
 
     private lateinit var mMap: GoogleMap
-    private lateinit var geofencingClient: GeofencingClient
-    private lateinit var intendedLatLong: LatLng
-    private lateinit var selectedReminder: ReminderDTO
-
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     @SuppressLint("MissingPermission")
     private val callback = OnMapReadyCallback { googleMap ->
         mMap = googleMap
         setUpObservers()
-        // Create a Geofence instance
-        geofencingClient = LocationServices.getGeofencingClient(requireContext())
 
         val barumak = LatLng(9.052596841535514, 7.452365927641011)
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(barumak, 16f))
@@ -75,7 +69,6 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
         onMapClicked()
         onMapLongClick()
         setMapStyle(mMap)
-//        addListeners()
 
     }
 
@@ -91,16 +84,9 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
         setHasOptionsMenu(true)
         setDisplayHomeAsUpEnabled(true)
 
-//        TODO: add the map setup implementation
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(callback)
-//        TODO: zoom to the user location after taking his permission
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
-//        TODO: add style to the map
-//        TODO: put a marker to location that the user selected
-
-
-//        TODO: call this function after the user confirms on the selected location
 
         binding.btnRequestPermission.setOnClickListener {
             checkLocationPermission()
@@ -113,7 +99,6 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
     @SuppressLint("MissingPermission")
     private fun setUpObservers() {
         _viewModel.hasPermission.observe(viewLifecycleOwner, Observer { hasPermission ->
-            Log.i("Permission", hasPermission.toString())
             if (hasPermission) {
                 mMap.isMyLocationEnabled = true
                 binding.btnRequestPermission.visibility = View.GONE
@@ -121,7 +106,12 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
             } else {
                 binding.btnRequestPermission.visibility = View.VISIBLE
             }
+        })
 
+        _viewModel.hasBackgroundLocationPermission.observe(viewLifecycleOwner, Observer { hasPermission ->
+            if (hasPermission){
+
+            }
         })
     }
 
@@ -173,7 +163,7 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
             ) {
                 val builder = AlertDialog.Builder(requireContext())
                 builder
-                    .setMessage(getString(R.string.rational_mesasge))
+                    .setMessage(getString(R.string.background_location_rationale))
                     .setTitle("Permission Required")
                     .setPositiveButton("OK") { dialog, id ->
                         makeBackgroundPermissionRequest()
@@ -190,6 +180,27 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
             // Performs some action with background location
             Log.i("Permission", "Backgroud Permission Granted")
         }
+    }
+    private fun hasBackgroundLocationPermission():Boolean {
+        val permission = ContextCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+        )
+        if (permission != PackageManager.PERMISSION_GRANTED){
+            return false
+        }
+        return true
+    }
+
+    private fun hasLocationPermission():Boolean {
+        val permission = ContextCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
+        if (permission != PackageManager.PERMISSION_GRANTED){
+            return false
+        }
+        return true
     }
 
 
@@ -215,19 +226,19 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
     ) {
         when (requestCode) {
             PERMISSION_LOCATION_REQUEST_CODE -> {
-
                 if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    findNavController().popBackStack()
+//                    findNavController().popBackStack()
                 } else {
-                    Log.i("Permission", "Permission Granted")
+                    Log.i("Permission", "Location Permission Granted")
                     _viewModel.hasPermission.postValue(true)
                 }
             }
             PERMISSION_BACKGROND_LOCATION_REQUEST_CODE -> {
                 if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    Log.i("Permission", "Permission Not Granted")
+                    Log.i("Permission", "Background Permission Not Granted")
                 } else {
-                    Log.i("Permission", "Permission Granted")
+                    Log.i("Permission", "Background Permission Granted")
+                    _viewModel.hasBackgroundLocationPermission.postValue(true)
                 }
             }
         }
@@ -245,9 +256,6 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
 
 
     private fun onLocationSelected() {
-        //        TODO: When the user confirms on the selected location,
-        //         send back the selected location details to the view model
-        //         and navigate back to the previous fragment to save the reminder and add the geofence
     }
 
 
@@ -256,7 +264,6 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
     }
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        // TODO: Change the map type based on the user's selection.
         R.id.normal_map -> {
             mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
             true
@@ -281,42 +288,44 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
     }
 
     override fun onMyLocationButtonClick(): Boolean {
-        zoomIntoLastKnownPosition()
+        if (hasBackgroundLocationPermission()){
+            zoomIntoLastKnownPosition()
+        }else{
+            checkBackgroundPermission()
+        }
         return false
     }
 
     override fun onPoiClick(poi: PointOfInterest?) {
-//        Log.i("POI", poi?.latLng?.latitude.toString())
-//        Log.i("POI", poi?.latLng?.longitude.toString())
-//        Log.i("POI", poi?.name.toString())
-//        Log.i("POI", poi?.placeId.toString())
+        if (!hasBackgroundLocationPermission() || !hasLocationPermission()){
+            checkBackgroundPermission()
+            checkLocationPermission()
+        }else{
+            var geocode = GeocodeDTO(
+                poi?.name.toString(),
+                poi?.latLng?.latitude.toString(),
+                poi?.latLng?.longitude.toString()
+            )
 
-        checkBackgroundPermission()
+            val stringBuilder = StringBuilder()
+            stringBuilder.append("Location details : ${poi?.name.toString()}")
+            stringBuilder.append(" would be added to you reminder")
 
-        var geocode = GeocodeDTO(
-            poi?.name.toString(),
-            poi?.latLng?.latitude.toString(),
-            poi?.latLng?.longitude.toString()
-        )
-
-        val stringBuilder = StringBuilder()
-        stringBuilder.append("Location details : ${poi?.name.toString()}")
-        stringBuilder.append(" would be added to you reminder")
-
-        val builder = AlertDialog.Builder(requireContext())
-        builder
-            .setMessage(stringBuilder.toString())
-            .setTitle("Add Location Details")
-            .setPositiveButton("Add Reminder") { dialog, id ->
-                // Go pack to add reminder screen
-                poi?.latLng?.let { addMarker(it,poi?.name.toString(),poi?.placeId.toString()) }
-                val action =
-                    SelectLocationFragmentDirections.actionSelectLocationFragmentToSaveReminderFragment(
-                        geocode
-                    )
-                findNavController().navigate(action)
-            }.setNegativeButton("Dismiss") { dialog, id ->
-            }.create().show()
+            val builder = AlertDialog.Builder(requireContext())
+            builder
+                .setMessage(stringBuilder.toString())
+                .setTitle("Add Location Details")
+                .setPositiveButton("Add Reminder") { dialog, id ->
+                    // Go pack to add reminder screen
+                    poi?.latLng?.let { addMarker(it,poi?.name.toString(),poi?.placeId.toString()) }
+                    val action =
+                        SelectLocationFragmentDirections.actionSelectLocationFragmentToSaveReminderFragment(
+                            geocode
+                        )
+                    findNavController().navigate(action)
+                }.setNegativeButton("Dismiss") { dialog, id ->
+                }.create().show()
+        }
     }
 
     private fun onMapClicked() {
@@ -330,35 +339,40 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
      */
     private fun onMapLongClick() {
         mMap.setOnMapLongClickListener {
-            checkBackgroundPermission()
-            val address = reverseGeocodeLocation(it.latitude, it.longitude)
+            if (hasLocationPermission()){
+                val address = reverseGeocodeLocation(it.latitude, it.longitude)
 
-            var geocode = GeocodeDTO(
-                address?.get(0)?.getAddressLine(0),
-                it.latitude.toString(),
-                it.longitude.toString()
-            )
+                var geocode = GeocodeDTO(
+                    address?.get(0)?.getAddressLine(0),
+                    it.latitude.toString(),
+                    it.longitude.toString()
+                )
 
-            val stringBuilder = StringBuilder()
-            stringBuilder.append("Location details : ${address?.get(0)?.getAddressLine(0)}")
-            stringBuilder.append(" ${address?.get(0)?.adminArea}")
-            stringBuilder.append(" would be added to you reminder")
+                val stringBuilder = StringBuilder()
+                stringBuilder.append("Location details : ${address?.get(0)?.getAddressLine(0)}")
+                stringBuilder.append(" ${address?.get(0)?.adminArea}")
+                stringBuilder.append(" would be added to you reminder")
 
-            val builder = AlertDialog.Builder(requireContext())
-            builder
-                .setMessage(stringBuilder.toString())
-                .setTitle("Add Location Details")
-                .setPositiveButton("Add Reminder") { dialog, id ->
-                    // Go pack to add reminder screen
-                    val action =
-                        SelectLocationFragmentDirections.actionSelectLocationFragmentToSaveReminderFragment(
-                            geocode
-                        )
-                    findNavController().navigate(action)
+                val builder = AlertDialog.Builder(requireContext())
+                builder
+                    .setMessage(stringBuilder.toString())
+                    .setTitle("Add Location Details")
+                    .setPositiveButton("Add Reminder") { dialog, id ->
+                        // Go pack to add reminder screen
+                        val action =
+                            SelectLocationFragmentDirections.actionSelectLocationFragmentToSaveReminderFragment(
+                                geocode
+                            )
+                        findNavController().navigate(action)
 
-                }.setNegativeButton("Dismiss") { dialog, id ->
-                    //
-                }.create().show()
+                    }.setNegativeButton("Dismiss") { dialog, id ->
+                        //
+                    }.create().show()
+            }
+            else{
+                checkLocationPermission()
+            }
+
         }
     }
 

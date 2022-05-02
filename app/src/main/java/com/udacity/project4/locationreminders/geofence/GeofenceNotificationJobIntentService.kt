@@ -30,7 +30,6 @@ class GeofenceNotificationJobIntentService : JobIntentService(), CoroutineScope{
         internal const val ACTION_GEOFENCE_EVENT =
             "HuntMainActivity.treasureHunt.action.ACTION_GEOFENCE_EVENT"
 
-        //        TODO: call this to start the JobIntentService to handle the geofencing transition events
         fun enqueueWork(context: Context, intent: Intent) {
             enqueueWork(
                 context,
@@ -50,18 +49,10 @@ class GeofenceNotificationJobIntentService : JobIntentService(), CoroutineScope{
         fenceId?.let { sendNotification(it) }
     }
 
-    //TODO: get the request id of the current geofence
-//    private fun sendNotification(triggeringGeofences: List<Geofence>) {
     private fun sendNotification(requestId: String) {
-//        val requestId = ""
 
-        //Get the local repository instance
-//        val remindersLocalRepository: RemindersLocalRepository by inject()
-//        Interaction to the repository has to be through a coroutine scope
         CoroutineScope(coroutineContext).launch(SupervisorJob()) {
-            //get the reminder with the request id
-//            val result = remindersLocalRepository.getReminder(requestId)
-            val dataSource : RemindersLocalRepository = get()
+            val dataSource : ReminderDataSource = get()
             val result = dataSource.getReminder(requestId)
             Log.i(TAG,result.toString())
             if (result is Result.Success<ReminderDTO>) {

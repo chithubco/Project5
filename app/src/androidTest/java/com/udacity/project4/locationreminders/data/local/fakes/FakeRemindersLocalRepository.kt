@@ -1,13 +1,12 @@
-package com.udacity.project4.locationreminders.data
+package com.udacity.project4.locationreminders.data.local.fakes
 
 import androidx.lifecycle.MutableLiveData
+import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
 import java.lang.Exception
 
-//Use FakeDataSource that acts as a test double to the LocalDataSource
-class FakeDataSource : ReminderDataSource {
-
+class FakeRemindersLocalRepository: ReminderDataSource {
     private val reminders = mutableListOf<ReminderDTO>()
     private val observableReminders = MutableLiveData<List<ReminderDTO>>(reminders)
 
@@ -25,7 +24,6 @@ class FakeDataSource : ReminderDataSource {
     }
 
     override suspend fun getReminder(id: String): Result<ReminderDTO> {
-
         return try {
             val response = reminders?.find { it.title == id }!!
             Result.Success(response)
@@ -38,10 +36,7 @@ class FakeDataSource : ReminderDataSource {
         reminders.clear()
         refreshData()
     }
-
     private fun refreshData() {
         observableReminders.postValue(reminders)
     }
-
-
 }

@@ -39,7 +39,6 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
         internal const val ACTION_GEOFENCE_EVENT =
             "HuntMainActivity.treasureHunt.action.ACTION_GEOFENCE_EVENT"
 
-        //        TODO: call this to start the JobIntentService to handle the geofencing transition events
         fun enqueueWork(context: Context, intent: Intent) {
             enqueueWork(
                 context,
@@ -57,9 +56,6 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
     }
 
     override fun onHandleWork(intent: Intent) {
-        //TODO: handle the geofencing transition events and
-        // send a notification to the user when he enters the geofence area
-        //TODO call @sendNotification
         val requestId = intent.getStringExtra("requestId").toString()
         val latitude = intent.getStringExtra("latitude").toString()
         val longitude = intent.getStringExtra("longitude").toString()

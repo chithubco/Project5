@@ -87,6 +87,7 @@ dependencies {
 
     //Koin
     implementation "org.koin:koin-android:$koinVersion"
+    implementation "org.koin:koin-android-ext:$koinVersion"
     implementation "org.koin:koin-androidx-viewmodel:$koinVersion"
 
 
@@ -139,6 +140,10 @@ dependencies {
     androidTestImplementation "org.mockito:mockito-core:$mockitoVersion"
     androidTestImplementation "com.linkedin.dexmaker:dexmaker-mockito:$dexMakerVersion"
     androidTestImplementation('org.koin:koin-test:2.0.1') { exclude group: 'org.mockito' }
+
+    //    implementation "com.google.truth:truth:1.0.1"
+    testImplementation "com.google.truth:truth:1.0.1"
+    androidTestImplementation "com.google.truth:truth:1.0.1"
 
 
 

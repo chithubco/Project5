@@ -10,8 +10,8 @@ object Constants {
 
     // Geofence constants
     val GEOFENCE_EXPIRATION_IN_MILLISECONDS: Long = TimeUnit.HOURS.toMillis(1)
-    const val GEOFENCE_LOITERING_DELAY_IN_MILLISECONDS = 10000
-    const val GEOFENCE_RADIUS_IN_METERS = 100f
+    const val GEOFENCE_LOITERING_DELAY_IN_MILLISECONDS = 1000
+    const val GEOFENCE_RADIUS_IN_METERS = 1000f
     const val GEOFENCE_REQUEST_ID = "1234"
     const val EXTRA_GEOFENCE_INDEX = "GEOFENCE_INDEX"
 

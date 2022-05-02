@@ -3,10 +3,13 @@ package com.udacity.project4.locationreminders
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Parcelable
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.udacity.project4.R
 import com.udacity.project4.databinding.ActivityReminderDescriptionBinding
+import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 
 /**
@@ -23,6 +26,17 @@ class ReminderDescriptionActivity : AppCompatActivity() {
             intent.putExtra(EXTRA_ReminderDataItem, reminderDataItem)
             return intent
         }
+
+        fun stringBuilderForReminderDetail(reminder: ReminderDataItem): String {
+            val sb = StringBuilder()
+//            sb.append("ID :" + reminder.id + "\n")
+            sb.append("Title :" + reminder.title + "\n")
+            sb.append("Dec :" + reminder.description + "\n")
+            sb.append("Loc :" +reminder.location + "\n")
+//            sb.append("Lat :" +reminder.latitude.toString() + "\n")
+//            sb.append("Long :" +reminder.longitude.toString() + "\n")
+            return sb.toString()
+        }
     }
 
     private lateinit var binding: ActivityReminderDescriptionBinding
@@ -32,6 +46,15 @@ class ReminderDescriptionActivity : AppCompatActivity() {
             this,
             R.layout.activity_reminder_description
         )
-//        TODO: Add the implementation of the reminder details
+        val bundle = intent.extras
+        if (bundle != null) {
+            val data  = bundle.get(EXTRA_ReminderDataItem) as ReminderDataItem
+            Log.i("GeofenceReceiver", stringBuilderForReminderDetail(data))
+            binding.reminderDataItem = data
+//            binding.tvReminderDetails.text = stringBuilderForReminderDetail(data)
+        }else{
+            Log.i("GeofenceReceiver", "No Data")
+        }
+
     }
 }

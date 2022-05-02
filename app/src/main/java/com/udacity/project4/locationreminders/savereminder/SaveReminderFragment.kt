@@ -60,8 +60,6 @@ class SaveReminderFragment : BaseFragment() {
             val longitude = _viewModel.longitude.value
 
             Log.i("ViewModel", location.toString())
-//            TODO: use the user entered reminder details to:
-//             1) add a geofencing request
             val serviceIntent =
                 Intent(requireContext(), GeofenceTransitionsJobIntentService::class.java)
             serviceIntent.putExtra("requestId", title)

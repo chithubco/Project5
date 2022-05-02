@@ -63,5 +63,6 @@
     <string name="night">Night</string>
     <string name="aubergine">Aubergine</string>
     <string name="request_permission">Request Permission</string>
-    <string name="rational_mesasge">Permission to access your location is required for this app to work properly</string>
+    <string name="rational_mesasge">Permission to access your Fine location is required for this app to work properly</string>
+    <string name="background_location_rationale">Background location access is required for this service</string>
 </resources>
