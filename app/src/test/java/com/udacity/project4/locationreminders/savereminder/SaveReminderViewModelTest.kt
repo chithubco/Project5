@@ -127,20 +127,4 @@ class SaveReminderViewModelTest {
         assertThat(snackBarValue).isEqualTo(R.string.err_select_location)
     }
 
-    // Test save reminder to ensure that toast value is generated
-//    @Test
-//    fun `insert reminder and save to ensure toast value is shown`() = runBlockingTest {
-//        val reminder = ReminderDataItem(
-//            "Cool Title",
-//            "Cool Description",
-//            "Cool Location",
-//            9.052596841535514,
-//            7.452365927641011
-//        )
-//        _viewModel.saveReminder(reminderData = reminder)
-//        val toastMessage = _viewModel.showToast.getOrAwaitValue()
-//
-//        assertThat(toastMessage).isNotNull()
-////        assertThat(toastMessage).isEqualTo(getString(R.string.reminder_saved))
-//    }
 }

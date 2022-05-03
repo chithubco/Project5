@@ -88,7 +88,7 @@ class ReminderListFragmentTest : KoinComponent {
 //    TODO: test the displayed data on the UI.
 
     @Test
-    fun `launch_list_fragment`() = runBlockingTest {
+    fun `launch_list_fragment_delete_all_reminders_add_single`() = runBlockingTest {
 
         testScope.launch {
            repo.deleteAllReminders()

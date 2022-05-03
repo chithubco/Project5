@@ -79,6 +79,11 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
             showSnackBarInt.value = R.string.err_select_location
             return false
         }
+
+        if (reminderData.description.isNullOrEmpty()) {
+            showSnackBarInt.value = R.string.err_select_description
+            return false
+        }
         return true
     }
 

@@ -33,6 +33,7 @@ import com.udacity.project4.utils.Constants.PERMISSION_BACKGROND_LOCATION_REQUES
 import com.udacity.project4.utils.Constants.PERMISSION_LOCATION_REQUEST_CODE
 import com.udacity.project4.utils.Permissions
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
+import com.udacity.project4.utils.wrapEspressoIdlingResource
 import org.koin.android.ext.android.inject
 import java.io.IOException
 import java.lang.StringBuilder
@@ -432,13 +433,14 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
         val zipCode: String?
         val Country: String?
 
-        try {
-            geocodeMatches =
-                Geocoder(requireContext()).getFromLocation(latitude, longitude, 1)
-        } catch (e: IOException) {
-            e.printStackTrace()
+        wrapEspressoIdlingResource {
+            try {
+                geocodeMatches =
+                    Geocoder(requireContext()).getFromLocation(latitude, longitude, 1)
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
         }
-
 
         geocodeMatches.let {
             address1 = it?.get(0)?.getAddressLine(0)

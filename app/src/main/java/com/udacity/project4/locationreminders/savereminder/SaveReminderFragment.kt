@@ -59,27 +59,29 @@ class SaveReminderFragment : BaseFragment() {
             val latitude = _viewModel.latitude.value
             val longitude = _viewModel.longitude.value
 
-            Log.i("ViewModel", location.toString())
-            val serviceIntent =
-                Intent(requireContext(), GeofenceTransitionsJobIntentService::class.java)
-            serviceIntent.putExtra("requestId", title)
-            serviceIntent.putExtra("latitude", latitude.toString())
-            serviceIntent.putExtra("longitude", longitude.toString())
-            GeofenceTransitionsJobIntentService.enqueueWork(requireContext(), serviceIntent)
-//             2) save the reminder to the local db
-            val reminder = ReminderDataItem(title, description, location, latitude, longitude)
-            _viewModel.validateAndSaveReminder(reminder)
+            //Validate Entry
+            val dataItem = ReminderDataItem(title, description, location, latitude, longitude)
+            if (_viewModel.validateEnteredData(dataItem)){
 
+                val serviceIntent =
+                    Intent(requireContext(), GeofenceTransitionsJobIntentService::class.java)
+                serviceIntent.putExtra("requestId", title)
+                serviceIntent.putExtra("latitude", latitude.toString())
+                serviceIntent.putExtra("longitude", longitude.toString())
+                GeofenceTransitionsJobIntentService.enqueueWork(requireContext(), serviceIntent)
+//             2) save the reminder to the local db
+                val reminder = ReminderDataItem(title, description, location, latitude, longitude)
+                _viewModel.validateAndSaveReminder(reminder)
+            }
         }
         setupArgs()
     }
 
     private fun setupArgs() {
-
         if (geocode?.latitude.isNullOrEmpty() || geocode?.longitude.isNullOrEmpty() || geocode?.location.isNullOrEmpty()) {
             hasLocationDetails = false
             Log.i("Geocode12", geocode.toString())
-            binding.saveReminder.isEnabled = false
+//            binding.saveReminder.isEnabled = false
         } else {
             Log.i("Geocode not empty", geocode.toString())
             geocode?.let {
