@@ -66,7 +66,6 @@ class ReminderListFragmentTest : KoinComponent {
     fun setup(){
         repo = getApplicationContext<MyApp>().reminderRepo
     }
-    //    TODO: test the navigation of the fragments.
     @Test
     fun click_fab_onListView_NavigateToMapFragment() = runBlockingTest {
         // Given we are on the Task Screen
@@ -85,7 +84,6 @@ class ReminderListFragmentTest : KoinComponent {
 
 
     }
-//    TODO: test the displayed data on the UI.
 
     @Test
     fun `launch_list_fragment_delete_all_reminders_add_single`() = runBlockingTest {
@@ -125,5 +123,4 @@ class ReminderListFragmentTest : KoinComponent {
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
 
     }
-//    TODO: add testing for the error messages.
 }

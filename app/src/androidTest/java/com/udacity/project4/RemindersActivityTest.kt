@@ -99,10 +99,9 @@ class RemindersActivityTest :
     }
 
 
-//    TODO: add End to End testing to the app
-
+// Please run test when logged in to app
     @Test
-    fun `add_reminder_tet`() = runBlocking {
+    fun `add_reminder`() = runBlocking {
         //Startup reminder screen
         val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
 
@@ -113,27 +112,19 @@ class RemindersActivityTest :
         onView(withId(R.id.reminderDescription)).perform(replaceText("New Description"))
         onView(withId(R.id.selectLocation))
             .perform(click())
-        Thread.sleep(2000)
+
         onView(withId(R.id.map))
             .perform(longClick())
         onView(withText("Add Reminder")).check(matches(isDisplayed()))
         onView(withText("Dismiss")).check(matches(isDisplayed()))
         onView(withText("Add Location Details")).check(matches(isDisplayed()))
         onView(withText("Add Reminder")).perform(click())
-        Thread.sleep(2000)
 
-        // Save new instance
+
         onView(withId(R.id.saveReminder))
             .perform(click())
-        Thread.sleep(500)
-        //Check List screen
 
-        // Using Toast Matcher
         onView(withText(appContext.getString(R.string.reminder_saved))).inRoot(ToastMatcher()).check(matches(isDisplayed()))
-
-//        onView(withId(com.google.android.material.R.id.snackbar_text))
-//            .check(matches(withText(R.string.reminder_saved)))
-        //Close reminder screen
         activityScenario.close()
 
     }
@@ -154,6 +145,7 @@ class RemindersActivityTest :
             .check(matches(withText(R.string.err_enter_title)))
 
         Thread.sleep(2000)
+        activityScenario.close()
     }
 
     @Test
@@ -173,6 +165,7 @@ class RemindersActivityTest :
             .check(matches(withText(R.string.err_enter_title)))
 
         Thread.sleep(2000)
+        activityScenario.close()
     }
 
 
@@ -193,6 +186,18 @@ class RemindersActivityTest :
             .check(matches(withText(R.string.err_select_location)))
 
         Thread.sleep(2000)
+        activityScenario.close()
     }
+
+
+//    @Test
+//    fun `logout_test`() = runBlockingTest {
+//        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+//        Thread.sleep(1000)
+//        onView(withText("LOGOUT")).perform(click())
+//        onView(withText("Click to Login")).check(matches(isDisplayed()))
+//        activityScenario.close()
+//
+//    }
 
 }

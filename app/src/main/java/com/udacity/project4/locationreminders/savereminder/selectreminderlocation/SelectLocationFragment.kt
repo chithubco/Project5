@@ -97,10 +97,19 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
     }
 
 
-    @SuppressLint("MissingPermission")
     private fun setUpObservers() {
         _viewModel.hasPermission.observe(viewLifecycleOwner, Observer { hasPermission ->
             if (hasPermission) {
+                if (ActivityCompat.checkSelfPermission(
+                        requireContext(),
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                        requireContext(),
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    makePermissionRequest()
+                }
                 mMap.isMyLocationEnabled = true
                 binding.btnRequestPermission.visibility = View.GONE
                 zoomIntoLastKnownPosition()
@@ -246,8 +255,17 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
 //        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
-    @SuppressLint("MissingPermission")
     private fun zoomIntoLastKnownPosition() {
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+          makePermissionRequest()
+        }
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 val position = location?.let { LatLng(it.latitude, it.longitude) }
@@ -424,7 +442,6 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
         }
     }
 
-    @SuppressLint("MissingPermission")
     private fun reverseGeocodeLocation(latitude: Double, longitude: Double): List<Address>? {
         var geocodeMatches: List<Address>? = null
         val address1: String?
