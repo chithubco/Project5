@@ -34,7 +34,7 @@ class MyApp : Application() {
             single {
                 //This view model is declared singleton to be used across multiple fragments
                 SaveReminderViewModel(
-                    get(),
+                    this@MyApp,
                     get() as ReminderDataSource
                 )
             }
@@ -48,4 +48,7 @@ class MyApp : Application() {
             modules(listOf(myModule))
         }
     }
+
+    val reminderRepo: ReminderDataSource
+        get() = ServiceLocator.provideTasksRepository(this)
 }
