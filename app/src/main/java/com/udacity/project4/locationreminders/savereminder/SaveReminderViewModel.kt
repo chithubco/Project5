@@ -8,6 +8,7 @@ import com.udacity.project4.R
 import com.udacity.project4.base.BaseViewModel
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.locationreminders.data.ReminderDataSource
+import com.udacity.project4.locationreminders.data.dto.GeocodeDTO
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import kotlinx.coroutines.launch
@@ -22,6 +23,7 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
     val longitude = MutableLiveData<Double>()
     val hasPermission = MutableLiveData<Boolean>()
     val hasBackgroundLocationPermission = MutableLiveData<Boolean>()
+    val isReadyToSave = MutableLiveData<Boolean>()
 
     /**
      * Clear the live data objects to start fresh next time the view model gets called
