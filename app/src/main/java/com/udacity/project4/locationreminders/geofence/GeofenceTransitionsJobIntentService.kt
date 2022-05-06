@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -69,13 +70,15 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
 
 
         if (latitude != null && longitude != null && requestId != null){
-            Log.i("GeofenceReceiver","Lat : ${latitude}")
-            Log.i("GeofenceReceiver","Long : ${longitude}")
-            Log.i("GeofenceReceiver","RequestId : ${requestId}")
+//            Log.i("GeofenceReceiver","Lat : ${latitude}")
+//            Log.i("GeofenceReceiver","Long : ${longitude}")
+//            Log.i("GeofenceReceiver","RequestId : ${requestId}")
             if (hasLocationPermission()){
-                createGeofence(latitude,longitude,requestId)
+                if (isGPSServiceAvailable()){
+//                    Log.i("GeofenceReceiver","Geofence Created")
+                    createGeofence(latitude,longitude,requestId)
+                }
             }
-
         }
         if (isStopped) return
     }
@@ -106,6 +109,7 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
                     addOnSuccessListener {
                         // Geofences added.
                         Log.i(TAG,"Geofence added")
+//                        Toast.makeText(this@GeofenceTransitionsJobIntentService,"Geofence Added", Toast.LENGTH_LONG).show()
                     }
                     addOnFailureListener {
                         if ((it.message != null)) {
@@ -144,6 +148,14 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
                 true
             }
         return foregroundLocationApproved && backgroundPermissionApproved
+    }
+
+    private fun isGPSServiceAvailable(): Boolean{
+        val locationManager = this@GeofenceTransitionsJobIntentService.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            return false
+        }
+        return true
     }
 
     override fun onDestroy() {

@@ -143,7 +143,7 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
             .setPositiveButton("Ok") { dialog, id ->
                 val gpsIntent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                 startActivityForResult(gpsIntent, Constants.PERMISSION_REQUEST_ENABLE_GPS)
-            }.setNegativeButton("Cancel") { dialog, id ->
+            }.setNegativeButton("No Thanks") { dialog, id ->
                 //
             }.create().show()
     }

@@ -11,7 +11,16 @@ class FakeDataSource : ReminderDataSource {
     private val reminders = mutableListOf<ReminderDTO>()
     private val observableReminders = MutableLiveData<List<ReminderDTO>>(reminders)
 
+    private var shouldReturnError = false
+
+    fun setReturnError(value: Boolean){
+        shouldReturnError = value
+    }
+
     override suspend fun getReminders(): Result<List<ReminderDTO>> {
+        if (shouldReturnError){
+            return Result.Error("Test Exception")
+        }
         return try {
             Result.Success(reminders)
         }catch (ex: Exception){
@@ -25,7 +34,9 @@ class FakeDataSource : ReminderDataSource {
     }
 
     override suspend fun getReminder(id: String): Result<ReminderDTO> {
-
+        if (shouldReturnError){
+            return Result.Error("Test Exception")
+        }
         return try {
             val response = reminders?.find { it.title == id }!!
             Result.Success(response)

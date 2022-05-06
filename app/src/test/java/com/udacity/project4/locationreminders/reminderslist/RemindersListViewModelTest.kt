@@ -34,13 +34,14 @@ class RemindersListViewModelTest {
     }
 
     @Test
-    fun `test showLoading to change from state while loading reminders`() = mainCoroutineRule.runBlockingTest {
-        mainCoroutineRule.pauseDispatcher()
-        _viewModel.loadReminders()
-        assertThat(_viewModel.showLoading.getOrAwaitValue()).isTrue()
-        mainCoroutineRule.resumeDispatcher()
-        assertThat(_viewModel.showLoading.getOrAwaitValue()).isFalse()
-    }
+    fun `test showLoading to change from state while loading reminders`() =
+        mainCoroutineRule.runBlockingTest {
+            mainCoroutineRule.pauseDispatcher()
+            _viewModel.loadReminders()
+            assertThat(_viewModel.showLoading.getOrAwaitValue()).isTrue()
+            mainCoroutineRule.resumeDispatcher()
+            assertThat(_viewModel.showLoading.getOrAwaitValue()).isFalse()
+        }
 
     @Test
     fun `reminderList is empty when no record is added`() = mainCoroutineRule.runBlockingTest {
@@ -50,20 +51,21 @@ class RemindersListViewModelTest {
     }
 
     @Test
-    fun `reminderList returns a value when a record is added`() = mainCoroutineRule.runBlockingTest {
-        val reminder = ReminderDTO(
-            "Cool Tile",
-            "Cool Description",
-            "Cool Location",
-            9.052596841535514,
-            7.452365927641011
-        )
-        datasource.saveReminder(reminder = reminder)
+    fun `reminderList returns a value when a record is added`() =
+        mainCoroutineRule.runBlockingTest {
+            val reminder = ReminderDTO(
+                "Cool Tile",
+                "Cool Description",
+                "Cool Location",
+                9.052596841535514,
+                7.452365927641011
+            )
+            datasource.saveReminder(reminder = reminder)
 
-        _viewModel.loadReminders()
-        val value = _viewModel.remindersList.getOrAwaitValue()
-        assertThat(value).isNotEmpty()
-    }
+            _viewModel.loadReminders()
+            val value = _viewModel.remindersList.getOrAwaitValue()
+            assertThat(value).isNotEmpty()
+        }
 
     @Test
     fun `show no data when reminder list is empty`() = mainCoroutineRule.runBlockingTest {
@@ -72,4 +74,23 @@ class RemindersListViewModelTest {
         assertThat(value).isEmpty()
         assertThat(_viewModel.showNoData.getOrAwaitValue()).isTrue()
     }
+
+    @Test
+    fun `load reminders when unavailable call error to display`() =
+        mainCoroutineRule.runBlockingTest {
+            //Make Datasource return an error
+            datasource.setReturnError(true)
+            val reminder = ReminderDTO(
+                "Cool Tile",
+                "Cool Description",
+                "Cool Location",
+                9.052596841535514,
+                7.452365927641011
+            )
+            datasource.saveReminder(reminder = reminder)
+            //Then an error message is shown
+            _viewModel.loadReminders()
+            assertThat(_viewModel.showNoData.getOrAwaitValue()).isTrue()
+        }
+
 }

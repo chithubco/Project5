@@ -75,7 +75,7 @@ class SaveReminderViewModelTest {
         )
         val value = _viewModel.validateEnteredData(reminder)
 
-        assertThat(value).isTrue()
+        assertThat(value).isFalse()
     }
 
     @Test
@@ -126,5 +126,6 @@ class SaveReminderViewModelTest {
         assertThat(snackBarValue).isNotNull()
         assertThat(snackBarValue).isEqualTo(R.string.err_select_location)
     }
+
 
 }

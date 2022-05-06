@@ -6,6 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import com.google.common.truth.Truth.assertThat
+import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
 import com.udacity.project4.locationreminders.data.local.fakes.FakeRemindersLocalRepository
@@ -29,20 +30,33 @@ import org.junit.runner.RunWith
 @MediumTest
 class RemindersLocalRepositoryTest {
 
-    private lateinit var dataStore: FakeDataSource
-    private lateinit var repo : FakeRemindersLocalRepository
+//    private lateinit var dataStore: FakeDataSource
+    private lateinit var repo : ReminderDataSource
+    private lateinit var database: RemindersDatabase
 
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
 
+
     @Before
     fun setup(){
-        dataStore = FakeDataSource()
-        repo = FakeRemindersLocalRepository()
+        database = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            RemindersDatabase::class.java
+        ).build()
+
+//        dataStore = FakeDataSource()
+        repo = RemindersLocalRepository(database.reminderDao())
     }
 
+    @After
+    fun closeDb(){
+        database.close()
+    }
+
+
     @Test
-    fun `request_all_reminders_from_datasource`() = runBlockingTest{
+    fun `request_all_reminders_from_datasource`() = runBlocking{
         val dataList = ArrayList<ReminderDataItem>()
         when(val result : Result<List<ReminderDTO>> = repo.getReminders()){
             is Result.Success<*> ->{
@@ -63,7 +77,7 @@ class RemindersLocalRepositoryTest {
     }
 
     @Test
-    fun `save_a_reminder_to_repo_test`()= runBlockingTest {
+    fun `save_a_reminder_to_repo_test`()= runBlocking {
         repo.saveReminder(REMINDER_1)
 
         val dataList = ArrayList<ReminderDTO>()
@@ -87,7 +101,7 @@ class RemindersLocalRepositoryTest {
     }
 
     @Test
-    fun `get_single_reminder_from_list`() = runBlockingTest {
+    fun `get_single_reminder_from_list`() = runBlocking {
         repo.saveReminder(REMINDER_1)
         repo.saveReminder(REMINDER_2)
         repo.saveReminder(REMINDER_3)
@@ -109,17 +123,16 @@ class RemindersLocalRepositoryTest {
     }
 
     @Test
-    fun `get_single_reminder_that_doesnt_exit`() = runBlockingTest {
+    fun `when_a_reminder_with_the_given_id_cannot_be_found_there_is_an_error_message`() = runBlocking {
         repo.saveReminder(REMINDER_1)
         repo.saveReminder(REMINDER_2)
 
 
         when(val result : Result<ReminderDTO>? = REMINDER_3.title?.let { repo.getReminder(it) }){
-            is Result.Success<*> ->{
-                assertThat(result.data).isNull()
-            }
             is Result.Error -> {
-                assertThat(result.message).isNull()
+                assertThat(result.message).isNotNull()
+                assertThat(result.message).isNotEmpty()
+                assertThat(result.message).isEqualTo("Reminder not found!")
             }
         }
 

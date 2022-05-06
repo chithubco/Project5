@@ -180,7 +180,6 @@ class SaveReminderFragment : BaseFragment() {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        Log.d("SaveReminderFrag", "onRequestPermissionResult")
 
         if (
             grantResults.isEmpty() ||
@@ -222,7 +221,7 @@ class SaveReminderFragment : BaseFragment() {
                 if (hasLocationPermission){
                     Log.i("GPS","Access Given")
                 }else{
-                    requestPermissionDialog()
+                    buildAlertGPSDisabled()
                 }
             }
         }
@@ -243,12 +242,12 @@ class SaveReminderFragment : BaseFragment() {
     private fun buildAlertGPSDisabled(){
         val builder = AlertDialog.Builder(requireContext())
         builder
-            .setMessage("GPS Service is Required for this app to work")
+            .setMessage("For a better service please turn on devise location")
             .setTitle("Location Permission")
             .setPositiveButton("Ok") { dialog, id ->
                 val gpsIntent = Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                 startActivityForResult(gpsIntent,PERMISSION_REQUEST_ENABLE_GPS)
-            }.setNegativeButton("Cancel") { dialog, id ->
+            }.setNegativeButton("No Thanks") { dialog, id ->
                 //
             }.create().show()
     }
