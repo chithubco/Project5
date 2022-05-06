@@ -162,11 +162,13 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
         if (isGPSServiceAvailable()){
             fusedLocationClient.lastLocation
                 .addOnSuccessListener { location: Location? ->
-                    val position = location?.let { LatLng(it.latitude, it.longitude) }
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 16f))
+                     location?.let {
+                        val position =LatLng(it.latitude, it.longitude)
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 16f))
+                    }
+
                 }
         }
-
     }
 
 
