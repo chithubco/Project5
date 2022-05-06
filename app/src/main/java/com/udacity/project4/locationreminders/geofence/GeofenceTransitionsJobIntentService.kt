@@ -1,13 +1,17 @@
 package com.udacity.project4.locationreminders.geofence
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.annotation.TargetApi
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import androidx.core.app.JobIntentService
 import androidx.core.content.ContentProviderCompat.requireContext
 import com.google.android.gms.common.api.ResolvableApiException
@@ -27,6 +31,9 @@ import kotlin.coroutines.CoroutineContext
 class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
 
     private val TAG = "GeofenceReceiver"
+    private val runningQOrLater = android.os.Build.VERSION.SDK_INT >=
+            android.os.Build.VERSION_CODES.Q
+
     private var coroutineJob: Job = Job()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + coroutineJob
@@ -65,7 +72,10 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
             Log.i("GeofenceReceiver","Lat : ${latitude}")
             Log.i("GeofenceReceiver","Long : ${longitude}")
             Log.i("GeofenceReceiver","RequestId : ${requestId}")
-            createGeofence(latitude,longitude,requestId)
+            if (hasLocationPermission()){
+                createGeofence(latitude,longitude,requestId)
+            }
+
         }
         if (isStopped) return
     }
@@ -116,6 +126,24 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT
         )
+    }
+
+    @TargetApi(29)
+    private fun hasLocationPermission(): Boolean {
+        val foregroundLocationApproved = (
+                PackageManager.PERMISSION_GRANTED ==
+                        ActivityCompat.checkSelfPermission(this@GeofenceTransitionsJobIntentService,
+                            Manifest.permission.ACCESS_FINE_LOCATION))
+        val backgroundPermissionApproved =
+            if (runningQOrLater) {
+                PackageManager.PERMISSION_GRANTED ==
+                        ActivityCompat.checkSelfPermission(
+                            this@GeofenceTransitionsJobIntentService, Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                        )
+            } else {
+                true
+            }
+        return foregroundLocationApproved && backgroundPermissionApproved
     }
 
     override fun onDestroy() {

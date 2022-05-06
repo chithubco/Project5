@@ -251,7 +251,7 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
             if (isGPSServiceAvailable()){
                 val address = reverseGeocodeLocation(it.latitude, it.longitude)
 
-                var geocode = GeocodeDTO(
+                geocode = GeocodeDTO(
                     address?.get(0)?.getAddressLine(0),
                     it.latitude.toString(),
                     it.longitude.toString()
