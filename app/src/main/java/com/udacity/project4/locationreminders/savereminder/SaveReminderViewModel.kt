@@ -25,6 +25,7 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
     val latitude = MutableLiveData<Double>()
     val longitude = MutableLiveData<Double>()
     val hasPermission = MutableLiveData<Boolean>()
+    val hasGPSPermission = MutableLiveData<Boolean>()
     val hasBackgroundLocationPermission = MutableLiveData<Boolean>()
     val isReadyToSave = MutableLiveData<Boolean>()
 

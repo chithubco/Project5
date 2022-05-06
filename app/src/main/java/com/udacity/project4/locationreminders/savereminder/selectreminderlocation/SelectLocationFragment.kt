@@ -3,6 +3,7 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.annotation.TargetApi
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
@@ -11,6 +12,7 @@ import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
@@ -27,11 +29,14 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.material.snackbar.Snackbar
+import com.udacity.project4.BuildConfig
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.data.dto.GeocodeDTO
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
+import com.udacity.project4.locationreminders.savereminder.SaveReminderFragmentDirections
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.Constants
 import com.udacity.project4.utils.Constants.PERMISSION_BACKGROND_LOCATION_REQUEST_CODE
@@ -53,6 +58,9 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var geocode: GeocodeDTO
 
+    private val runningQOrLater = android.os.Build.VERSION.SDK_INT >=
+            android.os.Build.VERSION_CODES.Q
+
     @SuppressLint("MissingPermission")
     private val callback = OnMapReadyCallback { googleMap ->
         mMap = googleMap
@@ -61,9 +69,9 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
         val barumak = LatLng(9.052596841535514, 7.452365927641011)
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(barumak, 16f))
         binding.btnSaveLocation.visibility = View.GONE
-        mMap.isMyLocationEnabled = true
+
         mMap.uiSettings.apply {
-            isMyLocationButtonEnabled = true
+//            isMyLocationButtonEnabled = true
             isMapToolbarEnabled = false
             isZoomControlsEnabled = true
             isZoomGesturesEnabled = true
@@ -76,6 +84,9 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
         onMapLongClick()
         setMapStyle(mMap)
 
+        if (!checkPermissions()){
+            makeLocationPermissionRequest()
+        }
     }
 
     override fun onCreateView(
@@ -105,13 +116,25 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
         return binding.root
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (checkPermissions()){
+            _viewModel.hasPermission.postValue(true)
+        }
+    }
 
     @SuppressLint("MissingPermission")
     private fun setUpObservers() {
         _viewModel.hasPermission.observe(viewLifecycleOwner, Observer { hasPermission ->
             if (hasPermission) {
+                mMap.isMyLocationEnabled = true
+//                zoomIntoLastKnownPosition()
+            }
+        })
 
-                zoomIntoLastKnownPosition()
+        _viewModel.hasGPSPermission.observe(viewLifecycleOwner, Observer { perm ->
+            if (!perm) {
+
             }
         })
 
@@ -129,9 +152,10 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
         val locationManager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
             buildAlertGPSDisabled()
+            _viewModel.hasGPSPermission.postValue(false)
             return false
         }
-        _viewModel.hasPermission.postValue(true)
+        _viewModel.hasGPSPermission.postValue(true)
         return true
     }
 
@@ -171,9 +195,6 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
         }
     }
 
-
-    private fun onLocationSelected() {
-    }
 
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -352,5 +373,104 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
 
     }
 
+    // Foreground Permission
+    @TargetApi(29)
+    private fun hasLocationPermission(): Boolean {
+        val foregroundLocationApproved = (
+                PackageManager.PERMISSION_GRANTED ==
+                        ActivityCompat.checkSelfPermission(requireContext(),
+                            Manifest.permission.ACCESS_FINE_LOCATION))
+        val backgroundPermissionApproved =
+            if (runningQOrLater) {
+                PackageManager.PERMISSION_GRANTED ==
+                        ActivityCompat.checkSelfPermission(
+                            requireContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                        )
+            } else {
+                true
+            }
+        return foregroundLocationApproved && backgroundPermissionApproved
+    }
+
+    private fun hasFineLocationPermission():Boolean{
+        return PackageManager.PERMISSION_GRANTED ==
+                ActivityCompat.checkSelfPermission(requireContext(),
+                    Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+
+    @TargetApi(29)
+    private fun makeLocationPermissionRequest() {
+        if (hasLocationPermission())
+            return
+        var permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+        val resultCode = when {
+            runningQOrLater -> {
+                permissionsArray += Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                Constants.REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE
+            }
+            else -> Constants.REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
+        }
+        Log.d("Save Reminder", "Request foreground only location permission")
+        Log.d("Save Reminder", "Build Version $runningQOrLater")
+        requestPermissions(
+            permissionsArray,
+            resultCode
+        )
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+
+        if (
+            grantResults.isEmpty() ||
+            grantResults[Constants.LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED ||
+            (requestCode == Constants.REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE &&
+                    grantResults[Constants.BACKGROUND_LOCATION_PERMISSION_INDEX] ==
+                    PackageManager.PERMISSION_DENIED))
+        {
+            if (hasFineLocationPermission()){
+                Log.d("SaveReminderFrag", "Have fine location permission")
+                _viewModel.hasPermission.postValue(true)
+            }else{
+//                Snackbar.make(
+//                    binding.root,
+//                    R.string.permission_denied_explanation,
+//                    Snackbar.LENGTH_INDEFINITE
+//                )
+//                    .setAction(R.string.settings) {
+//                        startActivity(Intent().apply {
+//                            action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+//                            data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
+//                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+//                        })
+//                    }.show()
+            }
+            Log.d("SaveReminderFrag", "onRequestPermissionResult Denied")
+        }
+        else {
+            Log.d("SaveReminderFrag", "onRequestPermissionResult Granted")
+            _viewModel.hasPermission.postValue(true)
+        }
+    }
+    private fun navigateToSelectMap(resolve:Boolean = true){
+        val action = SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment()
+        findNavController().navigate(action)
+    }
+
+    private fun checkPermissions():Boolean{
+        Log.i("checkPermission","checkPermission()")
+        if (hasLocationPermission()){
+            if (isGPSServiceAvailable()){
+                Log.i("checkPermission","True")
+                return true
+            }
+        }
+        Log.i("checkPermission","False")
+        return false
+    }
 
 }

@@ -73,10 +73,12 @@ class SaveReminderFragment : BaseFragment() {
         }
         binding.lifecycleOwner = this
         binding.selectLocation.setOnClickListener {
-            if (hasLocationPermission()) {
-               navigateToSelectMap()
-            }
-            makeLocationPermissionRequest()
+//            if (hasLocationPermission()) {
+//               navigateToSelectMap()
+//            }
+//            makeLocationPermissionRequest()
+            navigateToSelectMap()
+
         }
 
 
