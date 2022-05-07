@@ -229,7 +229,9 @@ class SaveReminderFragment : BaseFragment() {
             Log.d("SaveReminderFrag", "onRequestPermissionResult Denied")
         } else {
             Log.d("SaveReminderFrag", "onRequestPermissionResult Granted")
-            checkPermissions()
+            if (checkPermissions()){
+                _viewModel.isAllPermissionsGranted.value = true
+            }
         }
     }
 
