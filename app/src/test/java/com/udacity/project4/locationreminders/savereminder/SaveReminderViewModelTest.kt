@@ -127,5 +127,47 @@ class SaveReminderViewModelTest {
         assertThat(snackBarValue).isEqualTo(R.string.err_select_location)
     }
 
+    @Test
+    fun `show loading false`() {
+        _viewModel.showLoading.value = false
+        assertThat(_viewModel.showLoading.getOrAwaitValue()).isFalse()
+    }
+
+    @Test
+    fun `show loading true`() {
+        _viewModel.showLoading.value = true
+        assertThat(_viewModel.showLoading.getOrAwaitValue()).isTrue()
+    }
+
+    @Test
+    fun `show error message true`() {
+        _viewModel.showErrorMessage.value = "Error"
+        assertThat(_viewModel.showErrorMessage.getOrAwaitValue()).isEqualTo("Error")
+    }
+
+    @Test
+    fun `show error showSnackBar message`() {
+        _viewModel.showSnackBar.value = "Message"
+        assertThat(_viewModel.showSnackBar.getOrAwaitValue()).isEqualTo("Message")
+    }
+
+    @Test
+    fun `show error showToast message`() {
+        _viewModel.showToast.value = "Message"
+        assertThat(_viewModel.showToast.getOrAwaitValue()).isEqualTo("Message")
+    }
+
+    @Test
+    fun `show showNoData false`() {
+        _viewModel.showNoData.value = false
+        assertThat(_viewModel.showNoData.getOrAwaitValue()).isFalse()
+    }
+
+    @Test
+    fun `show showNoData true`() {
+        _viewModel.showNoData.value = true
+        assertThat(_viewModel.showNoData.getOrAwaitValue()).isTrue()
+    }
+
 
 }
