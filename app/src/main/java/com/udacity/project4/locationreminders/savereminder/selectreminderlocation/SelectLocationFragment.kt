@@ -4,6 +4,7 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 import android.Manifest
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
+import android.app.Activity.RESULT_OK
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
@@ -212,19 +213,24 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         if (requestCode == Constants.REQUEST_TURN_DEVICE_LOCATION_ON) {
-            Log.i(TAG,"onActivityResult")
-            Snackbar.make(
-                binding.root,
-                R.string.location_required_error,
-                Snackbar.LENGTH_LONG
-            )
-                .setAction(R.string.settings) {
-                    startActivity(Intent().apply {
-                        action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                        data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    })
-                }.show()
+            if (resultCode == RESULT_OK){
+                Toast.makeText(requireContext(),"Location Permission Granted",Toast.LENGTH_LONG).show()
+            }else{
+                Log.i(TAG,"onActivityResult")
+                Snackbar.make(
+                    binding.root,
+                    R.string.location_required_error,
+                    Snackbar.LENGTH_LONG
+                )
+                    .setAction(R.string.settings) {
+                        startActivity(Intent().apply {
+                            action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                            data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        })
+                    }.show()
+            }
+
         }
     }
 
@@ -461,8 +467,6 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
             }
             else -> Constants.REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
         }
-        Log.d("Save Reminder", "Request foreground only location permission")
-        Log.d("Save Reminder", "Build Version $runningQOrLater")
         requestPermissions(
             permissionsArray,
             resultCode
@@ -484,7 +488,7 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
                     PackageManager.PERMISSION_DENIED)
         ) {
             if (hasFineLocationPermission()) {
-                Log.d("SaveReminderFrag", "Have fine location permission")
+                Toast.makeText(requireContext(),"Only Fine Location Access Granted",Toast.LENGTH_SHORT).show()
                 _viewModel.hasPermission.postValue(true)
             } else {
 //                Snackbar.make(
@@ -502,22 +506,20 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
 
             }
             checkDeviceLocationSettings()
-            Log.d("SaveReminderFrag", "onRequestPermissionResult Denied")
+            Toast.makeText(requireContext(),"Fine and BG Location Access Denied",Toast.LENGTH_SHORT).show()
         } else {
-            Log.d("SaveReminderFrag", "onRequestPermissionResult Granted")
+            Toast.makeText(requireContext(),"Location Access Granted",Toast.LENGTH_SHORT).show()
+            checkDeviceLocationSettings()
             _viewModel.hasPermission.postValue(true)
         }
     }
 
     private fun checkPermissions(): Boolean {
-        Log.i("checkPermission", "checkPermission()")
         if (hasLocationPermission()) {
             if (isGPSServiceAvailable()) {
-                Log.i("checkPermission", "True")
                 return true
             }
         }
-        Log.i("checkPermission", "False")
         return false
     }
 
