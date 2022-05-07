@@ -6,27 +6,19 @@ import android.annotation.TargetApi
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.location.LocationManager
-import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.core.app.ActivityCompat.requestPermissions
+//import androidx.core.app.ActivityCompat
 import androidx.core.app.JobIntentService
-import androidx.core.content.ContentProviderCompat.requireContext
-import com.google.android.gms.common.api.ResolvableApiException
+import androidx.core.content.ContextCompat
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
-import com.udacity.project4.locationreminders.data.dto.ReminderDTO
-import com.udacity.project4.locationreminders.data.dto.Result
-import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
-import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.utils.Constants
 import com.udacity.project4.utils.Constants.GEOFENCE_EXPIRATION_IN_MILLISECONDS
-import com.udacity.project4.utils.sendNotification
 import kotlinx.coroutines.*
-import org.koin.android.ext.android.inject
 import kotlin.coroutines.CoroutineContext
 
 class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
@@ -70,14 +62,10 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
 
 
         if (latitude != null && longitude != null && requestId != null){
-//            Log.i("GeofenceReceiver","Lat : ${latitude}")
-//            Log.i("GeofenceReceiver","Long : ${longitude}")
-//            Log.i("GeofenceReceiver","RequestId : ${requestId}")
-            if (hasLocationPermission()){
-                if (isGPSServiceAvailable()){
-//                    Log.i("GeofenceReceiver","Geofence Created")
-                    createGeofence(latitude,longitude,requestId)
-                }
+            if (checkPermissions()){
+                createGeofence(latitude,longitude,requestId)
+            }else{
+                Log.i(TAG,"Requesting Permission")
             }
         }
         if (isStopped) return
@@ -156,6 +144,17 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
             return false
         }
         return true
+    }
+    private fun checkPermissions(): Boolean {
+        Log.i("checkPermission", "checkPermission()")
+        if (hasLocationPermission()) {
+            if (isGPSServiceAvailable()) {
+                Log.i("checkPermission", "True")
+                return true
+            }
+        }
+        Log.i("checkPermission", "False")
+        return false
     }
 
     override fun onDestroy() {

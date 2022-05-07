@@ -18,6 +18,7 @@ object Constants {
     const val EXTRA_GEOFENCE_INDEX = "GEOFENCE_INDEX"
     const val LOCATION_PERMISSION_INDEX = 0
     const val BACKGROUND_LOCATION_PERMISSION_INDEX = 1
+    const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
 
     // Notification Constants
     const val CHANNEL_ID = "333"

@@ -28,6 +28,7 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
     val hasGPSPermission = MutableLiveData<Boolean>()
     val hasBackgroundLocationPermission = MutableLiveData<Boolean>()
     val isReadyToSave = MutableLiveData<Boolean>()
+    val isAllPermissionsGranted = MutableLiveData<Boolean>()
 
 
     /**
@@ -69,7 +70,9 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
             )
             showLoading.value = false
             showToast.value = app.getString(R.string.reminder_saved)
-            navigationCommand.value = NavigationCommand.Back
+            navigationCommand.value = NavigationCommand.To(
+                SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment()
+            )
         }
     }
 

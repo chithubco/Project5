@@ -1,11 +1,16 @@
 package com.udacity.project4.utils
 
 import android.Manifest
+import android.annotation.TargetApi
 import android.content.Context
+import android.util.Log
 import androidx.fragment.app.Fragment
 import com.vmadalin.easypermissions.EasyPermissions
 
 object Permissions {
+    private val runningQOrLater = android.os.Build.VERSION.SDK_INT >=
+            android.os.Build.VERSION_CODES.Q
+
     fun hasLocationPermission(context: Context) =
         EasyPermissions.hasPermissions(
             context,
