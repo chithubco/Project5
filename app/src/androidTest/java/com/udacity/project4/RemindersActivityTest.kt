@@ -50,7 +50,6 @@ class RemindersActivityTest :
     private lateinit var appContext: Application
 
 
-
     /**
      * As we use Koin as a Service Locator Library to develop our code, we'll also use Koin to test our code.
      * at this step we will initialize Koin related code to be able to use it in out testing.
@@ -89,17 +88,18 @@ class RemindersActivityTest :
     }
 
     @Before
-    fun registerIdlingResource(){
+    fun registerIdlingResource() {
 
         IdlingRegistry.getInstance().register(countingIdlingResource)
     }
+
     @After
     fun unregisterIdlingResource() {
         IdlingRegistry.getInstance().unregister(countingIdlingResource)
     }
 
 
-// Please run test when logged in to app
+    // Please run test when logged in to app
     @Test
     fun `add_reminder`() = runBlocking {
         //Startup reminder screen
@@ -120,11 +120,17 @@ class RemindersActivityTest :
         onView(withText("Add Location Details")).check(matches(isDisplayed()))
         onView(withText("Add Reminder")).perform(click())
 
-
+        Thread.sleep(1000)
+        onView(withId(R.id.btn_save_location))
+            .perform(click())
+        Thread.sleep(1000)
         onView(withId(R.id.saveReminder))
             .perform(click())
 
-        onView(withText(appContext.getString(R.string.reminder_saved))).inRoot(ToastMatcher()).check(matches(isDisplayed()))
+        onView(withText(appContext.getString(R.string.reminder_saved))).inRoot(ToastMatcher())
+            .check(matches(isDisplayed()))
+
+        Thread.sleep(2000)
         activityScenario.close()
 
     }

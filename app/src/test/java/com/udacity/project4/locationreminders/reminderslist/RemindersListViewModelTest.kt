@@ -33,6 +33,7 @@ class RemindersListViewModelTest {
 //        _viewModel = get() as RemindersListViewModel
     }
 
+
     @Test
     fun `test showLoading to change from state while loading reminders`() =
         mainCoroutineRule.runBlockingTest {
@@ -42,6 +43,7 @@ class RemindersListViewModelTest {
             mainCoroutineRule.resumeDispatcher()
             assertThat(_viewModel.showLoading.getOrAwaitValue()).isFalse()
         }
+
 
     @Test
     fun `reminderList is empty when no record is added`() = mainCoroutineRule.runBlockingTest {
@@ -76,7 +78,7 @@ class RemindersListViewModelTest {
     }
 
     @Test
-    fun `load reminders when unavailable call error to display`() =
+    fun `load reminders when unavailable call error to display show no data`() =
         mainCoroutineRule.runBlockingTest {
             //Make Datasource return an error
             datasource.setReturnError(true)
@@ -92,5 +94,48 @@ class RemindersListViewModelTest {
             _viewModel.loadReminders()
             assertThat(_viewModel.showNoData.getOrAwaitValue()).isTrue()
         }
+
+    @Test
+    fun `load reminders with error return error`() = mainCoroutineRule.runBlockingTest {
+        //Given 3 reminders are added
+        val reminder = ReminderDTO(
+            "Cool Tile",
+            "Cool Description",
+            "Cool Location",
+            9.052596841535514,
+            7.452365927641011
+        )
+        val reminder2 = ReminderDTO(
+            "Cool Tile",
+            "Cool Description",
+            "Cool Location",
+            9.052596841535514,
+            7.452365927641011
+        )
+        datasource.saveReminder(reminder = reminder)
+        datasource.saveReminder(reminder = reminder2)
+
+        //Then the setErrorFlag is called
+        datasource.setReturnError(true)
+        _viewModel.loadReminders()
+
+        // An Error is raised
+        val error = _viewModel.showSnackBar.getOrAwaitValue()
+        assertThat(error).contains("Exception")
+    }
+
+    @Test
+    fun `test showLoading message with no data`() =
+        mainCoroutineRule.runBlockingTest {
+            mainCoroutineRule.pauseDispatcher()
+            datasource.setReturnError(true)
+            _viewModel.loadReminders()
+            assertThat(_viewModel.showLoading.getOrAwaitValue()).isTrue()
+
+            mainCoroutineRule.resumeDispatcher()
+
+            assertThat(_viewModel.showSnackBar.getOrAwaitValue()).contains("Exception")
+        }
+
 
 }
