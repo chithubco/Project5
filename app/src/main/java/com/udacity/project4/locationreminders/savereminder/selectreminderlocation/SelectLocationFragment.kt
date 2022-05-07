@@ -499,18 +499,14 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
 //                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
 //                        })
 //                    }.show()
+
             }
+            checkDeviceLocationSettings()
             Log.d("SaveReminderFrag", "onRequestPermissionResult Denied")
         } else {
             Log.d("SaveReminderFrag", "onRequestPermissionResult Granted")
             _viewModel.hasPermission.postValue(true)
         }
-    }
-
-    private fun navigateToSelectMap(resolve: Boolean = true) {
-        val action =
-            SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment()
-        findNavController().navigate(action)
     }
 
     private fun checkPermissions(): Boolean {
