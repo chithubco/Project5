@@ -21,7 +21,6 @@ import android.util.Log
 import android.view.*
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
@@ -38,13 +37,8 @@ import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.data.dto.GeocodeDTO
-import com.udacity.project4.locationreminders.data.dto.ReminderDTO
-import com.udacity.project4.locationreminders.savereminder.SaveReminderFragmentDirections
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.Constants
-import com.udacity.project4.utils.Constants.PERMISSION_BACKGROND_LOCATION_REQUEST_CODE
-import com.udacity.project4.utils.Constants.PERMISSION_LOCATION_REQUEST_CODE
-import com.udacity.project4.utils.Permissions
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import com.udacity.project4.utils.wrapEspressoIdlingResource
 import org.koin.android.ext.android.inject
@@ -429,22 +423,22 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
     // Foreground Permission
     @TargetApi(29)
     private fun hasLocationPermission(): Boolean {
-        val foregroundLocationApproved = (
+        //        val backgroundPermissionApproved =
+//            if (runningQOrLater) {
+//                PackageManager.PERMISSION_GRANTED ==
+//                        ActivityCompat.checkSelfPermission(
+//                            requireContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION
+//                        )
+//            } else {
+//                true
+//            }
+//        return foregroundLocationApproved && backgroundPermissionApproved
+        return (
                 PackageManager.PERMISSION_GRANTED ==
                         ActivityCompat.checkSelfPermission(
                             requireContext(),
                             Manifest.permission.ACCESS_FINE_LOCATION
                         ))
-        val backgroundPermissionApproved =
-            if (runningQOrLater) {
-                PackageManager.PERMISSION_GRANTED ==
-                        ActivityCompat.checkSelfPermission(
-                            requireContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                        )
-            } else {
-                true
-            }
-        return foregroundLocationApproved && backgroundPermissionApproved
     }
 
     private fun hasFineLocationPermission(): Boolean {
@@ -460,16 +454,9 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
         if (hasLocationPermission())
             return
         var permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
-        val resultCode = when {
-            runningQOrLater -> {
-                permissionsArray += Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                Constants.REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE
-            }
-            else -> Constants.REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
-        }
         requestPermissions(
             permissionsArray,
-            resultCode
+            Constants.REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
         )
     }
 
@@ -482,31 +469,15 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
 
         if (
             grantResults.isEmpty() ||
-            grantResults[Constants.LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED ||
-            (requestCode == Constants.REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE &&
-                    grantResults[Constants.BACKGROUND_LOCATION_PERMISSION_INDEX] ==
-                    PackageManager.PERMISSION_DENIED)
-        ) {
-            if (hasFineLocationPermission()) {
-                Toast.makeText(requireContext(),"Only Fine Location Access Granted",Toast.LENGTH_SHORT).show()
-                _viewModel.hasPermission.postValue(true)
-            } else {
-//                Snackbar.make(
-//                    binding.root,
-//                    R.string.permission_denied_explanation,
-//                    Snackbar.LENGTH_INDEFINITE
-//                )
-//                    .setAction(R.string.settings) {
-//                        startActivity(Intent().apply {
-//                            action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-//                            data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
-//                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-//                        })
-//                    }.show()
+            grantResults[Constants.LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED
 
+        ) {
+            if (!hasFineLocationPermission()) {
+                Log.i(TAG,"Fine Location Not Granted")
+                _viewModel.hasPermission.postValue(false)
+                checkDeviceLocationSettings()
             }
-            checkDeviceLocationSettings()
-            Toast.makeText(requireContext(),"Fine and BG Location Access Denied",Toast.LENGTH_SHORT).show()
+
         } else {
             Toast.makeText(requireContext(),"Location Access Granted",Toast.LENGTH_SHORT).show()
             checkDeviceLocationSettings()
