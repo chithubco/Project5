@@ -20,6 +20,9 @@
     <string name="dropped_pin">Dropped Pin</string>
     <string name="poi">poi</string>
     <string name="location_required_error">Location services must be enabled to use the app</string>
+    <string name="location_required_dialog_message">Location permission is required to get your current location would you like to enable it..</string>
+    <string name="location_access_granted">"Location Access Granted"</string>
+    <string name="location_required">"Location permission is required to get your current location. Would you like to enable it.."</string>
     <string name="permission_denied_explanation">You need to grant all the time location permission in order to select your location.</string>
     <string name="permission_denied_geofence_explanation">You need to grant all the time location permission in order to create Geofence.</string>
     <string name="nuge_user_to_grant_permission">To access location please grant location permission.</string>

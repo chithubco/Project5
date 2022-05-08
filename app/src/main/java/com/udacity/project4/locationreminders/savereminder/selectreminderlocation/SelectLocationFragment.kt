@@ -311,7 +311,6 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
      */
     private fun onMapLongClick() {
         mMap.setOnMapLongClickListener {
-            if (isGPSServiceAvailable()) {
                 val address = reverseGeocodeLocation(it.latitude, it.longitude)
 
                 geocode = GeocodeDTO(
@@ -335,8 +334,6 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
                     }.setNegativeButton("Dismiss") { dialog, id ->
                         _viewModel.isReadyToSave.postValue(false)
                     }.create().show()
-            }
-
         }
     }
 
@@ -404,15 +401,6 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
 
     // Foreground Permission
     @TargetApi(29)
-    private fun hasLocationPermission(): Boolean {
-        return (
-                PackageManager.PERMISSION_GRANTED ==
-                        ActivityCompat.checkSelfPermission(
-                            requireContext(),
-                            Manifest.permission.ACCESS_FINE_LOCATION
-                        ))
-    }
-
     private fun hasFineLocationPermission(): Boolean {
         return PackageManager.PERMISSION_GRANTED ==
                 ActivityCompat.checkSelfPermission(
@@ -423,8 +411,27 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
 
     @TargetApi(29)
     private fun makeLocationPermissionRequest() {
-        if (hasLocationPermission())
+        if (hasFineLocationPermission())
             return
+
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) ){
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Location Rationale")
+                    .setMessage(R.string.location_required_dialog_message)
+                    .setPositiveButton("Grant Permission") { _, _ ->
+                        requestFineLocationPermission()
+                    }.setNegativeButton("No") { _, _ ->
+                        return@setNegativeButton
+                    }.show()
+            }else{
+                requestFineLocationPermission()
+            }
+        }
+
+    }
+    @TargetApi(29)
+    private fun requestFineLocationPermission(){
         var permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
         requestPermissions(
             permissionsArray,
@@ -445,20 +452,24 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
 
         ) {
             if (!hasFineLocationPermission()) {
-                Log.i(TAG, "Fine Location Not Granted")
+                Snackbar.make(
+                    binding.root,
+                    R.string.location_required, Snackbar.LENGTH_LONG
+                ).show()
                 _viewModel.hasPermission.postValue(false)
                 checkDeviceLocationSettings()
             }
 
+
         } else {
-            Toast.makeText(requireContext(), "Location Access Granted", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), R.string.location_access_granted, Toast.LENGTH_SHORT).show()
             checkDeviceLocationSettings()
             _viewModel.hasPermission.postValue(true)
         }
     }
 
     private fun checkPermissions(): Boolean {
-        if (hasLocationPermission()) {
+        if (hasFineLocationPermission()) {
             if (isGPSServiceAvailable()) {
                 return true
             }

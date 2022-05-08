@@ -14,6 +14,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -228,9 +229,8 @@ class SaveReminderFragment : BaseFragment() {
                     })
                 }.show()
 
-            Log.d("SaveReminderFrag", "onRequestPermissionResult Denied")
         } else {
-            Log.d("SaveReminderFrag", "onRequestPermissionResult Granted")
+            Toast.makeText(requireContext(), "Permission Granted", Toast.LENGTH_SHORT).show()
             if (checkPermissions()){
                 _viewModel.isAllPermissionsGranted.value = true
             }
@@ -247,11 +247,9 @@ class SaveReminderFragment : BaseFragment() {
         Log.i(TAG, "checkPermission()")
         if (hasLocationPermission()) {
             if (isGPSServiceAvailable()) {
-                Log.i(TAG, "isGPSServiceAvailable() True")
                 return true
             }
         }
-        Log.i(TAG, "hasLocationPermission() False")
         return false
     }
 
@@ -298,7 +296,7 @@ class SaveReminderFragment : BaseFragment() {
         }
         locationSettingsResponseTask.addOnCompleteListener {
             if (it.isSuccessful) {
-                Log.i(TAG, "GPS Enabled")
+                Toast.makeText(requireContext(), "GPS Permission Granted", Toast.LENGTH_SHORT).show()
                 _viewModel.isAllPermissionsGranted.value = true
             }
         }
