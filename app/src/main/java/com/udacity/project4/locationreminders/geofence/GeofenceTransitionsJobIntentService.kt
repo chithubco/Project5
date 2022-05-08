@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.util.Log
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.requestPermissions
 //import androidx.core.app.ActivityCompat
@@ -18,6 +19,7 @@ import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
 import com.udacity.project4.utils.Constants
 import com.udacity.project4.utils.Constants.GEOFENCE_EXPIRATION_IN_MILLISECONDS
+import com.udacity.project4.utils.Constants.NOTIFICATION_RESPONSIVENESS
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
@@ -80,7 +82,8 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
                 Constants.GEOFENCE_RADIUS_IN_METERS
             )
             .setLoiteringDelay(Constants.GEOFENCE_LOITERING_DELAY_IN_MILLISECONDS)
-            .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+            .setExpirationDuration(Geofence.NEVER_EXPIRE)
+            .setNotificationResponsiveness(NOTIFICATION_RESPONSIVENESS)
             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT or Geofence.GEOFENCE_TRANSITION_DWELL)
             .build()
 
@@ -91,19 +94,15 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
             }
         }.build()
 
-        geofencingClient.removeGeofences(pendingIntentGet()).run {
-            addOnCompleteListener {
-                geofencingClient.addGeofences(request, pendingIntentGet()).run {
-                    addOnSuccessListener {
-                        // Geofences added.
-                        Log.i(TAG,"Geofence added")
-//                        Toast.makeText(this@GeofenceTransitionsJobIntentService,"Geofence Added", Toast.LENGTH_LONG).show()
-                    }
-                    addOnFailureListener {
-                        if ((it.message != null)) {
-                            Log.w(TAG, it.toString())
-                        }
-                    }
+
+        geofencingClient.addGeofences(request, pendingIntentGet()).run {
+            addOnSuccessListener {
+                Log.i(TAG,"Geofence added")
+                Toast.makeText(this@GeofenceTransitionsJobIntentService,"Geofence Added", Toast.LENGTH_LONG).show()
+            }
+            addOnFailureListener {
+                if ((it.message != null)) {
+                    Log.w(TAG, it.toString())
                 }
             }
         }

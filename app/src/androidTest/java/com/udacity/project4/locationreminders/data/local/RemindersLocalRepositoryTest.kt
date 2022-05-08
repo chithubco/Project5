@@ -30,7 +30,6 @@ import org.junit.runner.RunWith
 @MediumTest
 class RemindersLocalRepositoryTest {
 
-//    private lateinit var dataStore: FakeDataSource
     private lateinit var repo : ReminderDataSource
     private lateinit var database: RemindersDatabase
 
@@ -45,7 +44,6 @@ class RemindersLocalRepositoryTest {
             RemindersDatabase::class.java
         ).build()
 
-//        dataStore = FakeDataSource()
         repo = RemindersLocalRepository(database.reminderDao())
     }
 

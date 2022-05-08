@@ -140,6 +140,8 @@ class SaveReminderFragment : BaseFragment() {
                     val reminder =
                         ReminderDataItem(title, description, location, latitude, longitude)
                     _viewModel.validateAndSaveReminder(reminder)
+                    _viewModel.onClear()
+                    _viewModel.isAllPermissionsGranted.value = false
                 }
             })
     }

@@ -69,7 +69,6 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
         binding.btnSaveLocation.visibility = View.GONE
 
         mMap.uiSettings.apply {
-//            isMyLocationButtonEnabled = true
             isMapToolbarEnabled = false
             isZoomControlsEnabled = true
             isZoomGesturesEnabled = true
@@ -84,6 +83,8 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
 
         if (!checkPermissions()) {
             makeLocationPermissionRequest()
+        } else {
+            _viewModel.hasPermission.postValue(true)
         }
     }
 
@@ -113,13 +114,6 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
 
         return binding.root
     }
-
-//    override fun onResume() {
-//        super.onResume()
-//        if (checkPermissions()) {
-//            _viewModel.hasPermission.postValue(true)
-//        }
-//    }
 
 
     @SuppressLint("MissingPermission")
@@ -159,7 +153,7 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
     }
 
 
-    private fun checkDeviceLocationSettings(resolve:Boolean = true) {
+    private fun checkDeviceLocationSettings(resolve: Boolean = true) {
         val locationRequest = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_LOW_POWER
         }
@@ -170,7 +164,7 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
             settingsClient.checkLocationSettings(builder.build())
 
         locationSettingsResponseTask.addOnFailureListener { exception ->
-            if (exception is ResolvableApiException && resolve){
+            if (exception is ResolvableApiException && resolve) {
                 // Location settings are not satisfied, but this can be fixed
                 // by showing the user a dialog.
                 try {
@@ -199,7 +193,7 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
             }
         }
         locationSettingsResponseTask.addOnCompleteListener {
-            if ( it.isSuccessful ) {
+            if (it.isSuccessful) {
                 _viewModel.hasGPSPermission.postValue(true)
             }
         }
@@ -207,10 +201,11 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         if (requestCode == Constants.REQUEST_TURN_DEVICE_LOCATION_ON) {
-            if (resultCode == RESULT_OK){
-                Toast.makeText(requireContext(),"Location Permission Granted",Toast.LENGTH_LONG).show()
-            }else{
-                Log.i(TAG,"onActivityResult")
+            if (resultCode == RESULT_OK) {
+                Toast.makeText(requireContext(), "Location Permission Granted", Toast.LENGTH_LONG)
+                    .show()
+            } else {
+                Log.i(TAG, "onActivityResult")
                 Snackbar.make(
                     binding.root,
                     R.string.location_required_error,
@@ -379,19 +374,6 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
     }
 
 
-    private fun updateMapStyle(resource: Int) {
-        try {
-            mMap.setMapStyle(
-                MapStyleOptions.loadRawResourceStyle(
-                    requireContext(),
-                    resource
-                )
-            )
-        } catch (e: Exception) {
-            Log.d("Map Style", e.toString())
-        }
-    }
-
     private fun reverseGeocodeLocation(latitude: Double, longitude: Double): List<Address>? {
         var geocodeMatches: List<Address>? = null
         val address1: String?
@@ -423,16 +405,6 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
     // Foreground Permission
     @TargetApi(29)
     private fun hasLocationPermission(): Boolean {
-        //        val backgroundPermissionApproved =
-//            if (runningQOrLater) {
-//                PackageManager.PERMISSION_GRANTED ==
-//                        ActivityCompat.checkSelfPermission(
-//                            requireContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION
-//                        )
-//            } else {
-//                true
-//            }
-//        return foregroundLocationApproved && backgroundPermissionApproved
         return (
                 PackageManager.PERMISSION_GRANTED ==
                         ActivityCompat.checkSelfPermission(
@@ -473,13 +445,13 @@ class SelectLocationFragment : BaseFragment(), GoogleMap.OnMarkerClickListener,
 
         ) {
             if (!hasFineLocationPermission()) {
-                Log.i(TAG,"Fine Location Not Granted")
+                Log.i(TAG, "Fine Location Not Granted")
                 _viewModel.hasPermission.postValue(false)
                 checkDeviceLocationSettings()
             }
 
         } else {
-            Toast.makeText(requireContext(),"Location Access Granted",Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Location Access Granted", Toast.LENGTH_SHORT).show()
             checkDeviceLocationSettings()
             _viewModel.hasPermission.postValue(true)
         }

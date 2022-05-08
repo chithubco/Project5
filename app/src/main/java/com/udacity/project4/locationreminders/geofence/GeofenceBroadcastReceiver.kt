@@ -1,11 +1,9 @@
 package com.udacity.project4.locationreminders.geofence
 
-import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import androidx.core.content.ContentProviderCompat.requireContext
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
 import com.udacity.project4.locationreminders.geofence.GeofenceTransitionsJobIntentService.Companion.ACTION_GEOFENCE_EVENT
@@ -35,52 +33,36 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             }
             if (geofencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL) {
 
-                val fenceId = when {
-                    geofencingEvent.triggeringGeofences.isNotEmpty() ->
-                        geofencingEvent.triggeringGeofences[0].requestId
-                    else -> {
-                        Log.e(TAG, "No Geofence Trigger Found! Abort mission!")
-                        return
-                    }
+                val geofenceList = geofencingEvent.triggeringGeofences
+                for (geofence in geofenceList){
+                    val fenceId = geofence.requestId
+                    val serviceIntent =
+                        Intent(context, GeofenceNotificationJobIntentService::class.java)
+                    serviceIntent.putExtra("fenceId", fenceId)
+                    GeofenceNotificationJobIntentService.enqueueWork(context, serviceIntent)
                 }
-                Log.v(TAG, "Geo Fence DWELLER ${fenceId}")
-                val serviceIntent =
-                    Intent(context, GeofenceNotificationJobIntentService::class.java)
-                serviceIntent.putExtra("fenceId", fenceId)
-                GeofenceNotificationJobIntentService.enqueueWork(context, serviceIntent)
+
 
             }
             if (geofencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-                Log.v(TAG, "Geo Fence ENTER")
-                val fenceId = when {
-                    geofencingEvent.triggeringGeofences.isNotEmpty() ->
-                        geofencingEvent.triggeringGeofences[0].requestId
-                    else -> {
-                        Log.e(TAG, "No Geofence Trigger Found! Abort mission!")
-                        return
-                    }
+                val geofenceList = geofencingEvent.triggeringGeofences
+                for (geofence in geofenceList){
+                    val fenceId = geofence.requestId
+                    val serviceIntent =
+                        Intent(context, GeofenceNotificationJobIntentService::class.java)
+                    serviceIntent.putExtra("fenceId", fenceId)
+                    GeofenceNotificationJobIntentService.enqueueWork(context, serviceIntent)
                 }
-                Log.v(TAG, "Geo Fence DWELLER ${fenceId}")
-                val serviceIntent =
-                    Intent(context, GeofenceNotificationJobIntentService::class.java)
-                serviceIntent.putExtra("fenceId", fenceId)
-                GeofenceNotificationJobIntentService.enqueueWork(context, serviceIntent)
             }
             if (geofencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-                Log.v(TAG, "Geo Fence EXIT")
-                val fenceId = when {
-                    geofencingEvent.triggeringGeofences.isNotEmpty() ->
-                        geofencingEvent.triggeringGeofences[0].requestId
-                    else -> {
-                        Log.e(TAG, "No Geofence Trigger Found! Abort mission!")
-                        return
-                    }
+                val geofenceList = geofencingEvent.triggeringGeofences
+                for (geofence in geofenceList){
+                    val fenceId = geofence.requestId
+                    val serviceIntent =
+                        Intent(context, GeofenceNotificationJobIntentService::class.java)
+                    serviceIntent.putExtra("fenceId", fenceId)
+                    GeofenceNotificationJobIntentService.enqueueWork(context, serviceIntent)
                 }
-                Log.v(TAG, "Geo Fence DWELLER ${fenceId}")
-                val serviceIntent =
-                    Intent(context, GeofenceNotificationJobIntentService::class.java)
-                serviceIntent.putExtra("fenceId", fenceId)
-                GeofenceNotificationJobIntentService.enqueueWork(context, serviceIntent)
             }
         }
 

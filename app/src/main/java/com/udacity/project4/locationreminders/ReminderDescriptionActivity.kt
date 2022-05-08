@@ -29,12 +29,9 @@ class ReminderDescriptionActivity : AppCompatActivity() {
 
         fun stringBuilderForReminderDetail(reminder: ReminderDataItem): String {
             val sb = StringBuilder()
-//            sb.append("ID :" + reminder.id + "\n")
             sb.append("Title :" + reminder.title + "\n")
             sb.append("Dec :" + reminder.description + "\n")
             sb.append("Loc :" +reminder.location + "\n")
-//            sb.append("Lat :" +reminder.latitude.toString() + "\n")
-//            sb.append("Long :" +reminder.longitude.toString() + "\n")
             return sb.toString()
         }
     }
@@ -51,9 +48,7 @@ class ReminderDescriptionActivity : AppCompatActivity() {
             val data  = bundle.get(EXTRA_ReminderDataItem) as ReminderDataItem
             Log.i("GeofenceReceiver", stringBuilderForReminderDetail(data))
             binding.reminderDataItem = data
-//            binding.tvReminderDetails.text = stringBuilderForReminderDetail(data)
         }else{
-            Log.i("GeofenceReceiver", "No Data")
         }
 
     }

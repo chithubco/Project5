@@ -30,7 +30,6 @@ class RemindersListViewModelTest {
     fun setupViewMode() {
         datasource = FakeDataSource()
         _viewModel = RemindersListViewModel(Application(), datasource)
-//        _viewModel = get() as RemindersListViewModel
     }
 
 
